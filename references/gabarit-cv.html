@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<!--
+  GABARIT CV.
+
+  Le contenu ci-dessous est FICTIF (Camille Martin n'existe pas). Il est garde
+  rempli plutot que vide en squelette : voir le rendu attendu vaut mieux qu'une
+  liste de placeholders. Le CSS est eprouve en impression A4, ne le reecris pas,
+  adapte le contenu.
+
+  MARCHE A SUIVRE
+  1. Copier ce fichier vers <dossier de travail>/<prefixe>-<entreprise>-<lang>.html
+     (dossier et prefixe : en-tete de references/profil-source.md)
+  2. Remplacer tout le contenu par celui du candidat, garder le CSS
+  3. Reordonner les sections selon l'annonce, la chronologie ne commande pas
+  4. Pendant le travail, chaque bullet porte sa source, en commentaire HTML place
+     juste avant la fermeture du li : la forme exacte est donnee dans SKILL.md, phase 1
+  5. Retirer tous les commentaires de source avant le rendu PDF final
+
+  CLASSES DISPONIBLES
+  .page          conteneur A4, grille colonne latérale 63mm + colonne principale
+  .side          colonne latérale : identité, contact, compétences, atouts, langues, formation
+  .main          colonne principale : profil, expérience, engagement
+  .chip          pastille de compétence, dans .chips, groupées par .skillgroup
+  .strength      liste à coches de la colonne latérale
+  .job           bloc de mission avec puce sur la timeline
+  .compact       lignes condensées pour les missions anciennes ou hors sujet
+                 (.c-row > .c-left + .c-date)
+  .summary .hi   mise en valeur dans le paragraphe de profil
+
+  PAGINATION
+  Une .page = une feuille A4. Pour un CV deux pages, dupliquer le bloc .page.
+  Le @media print est déjà réglé (marges nulles, pas d'ombre).
+
+  RENDU
+  bun ~/.claude/skills/gcv/scripts/render-pdf.ts <fichier.html>
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV · Camille Martin · Développeuse Frontend Senior</title>
+<style>
+  :root{
+    --ink:#1c2434;--muted:#5b6577;--accent:#2f5fea;--accent-soft:#eef2ff;
+    --line:#e3e7ef;--sidebar:#f6f8fc;--chip:#eef2ff;--chip-ink:#2f4fb0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-family:"Inter","Segoe UI",Roboto,-apple-system,Helvetica,Arial,sans-serif;color:var(--ink);font-size:13px;line-height:1.48;-webkit-font-smoothing:antialiased}
+  body{background:#e9edf4;padding:28px 0}
+  .page{width:210mm;min-height:297mm;margin:0 auto 22px;background:#fff;display:grid;grid-template-columns:63mm 1fr;box-shadow:0 6px 28px rgba(20,30,60,.14);overflow:hidden}
+  .side{background:var(--sidebar);border-right:1px solid var(--line);padding:24px 17px 26px}
+  .name{font-size:24px;font-weight:800;letter-spacing:-.4px;line-height:1.05}
+  .role{margin-top:6px;font-size:12px;font-weight:600;color:var(--accent)}
+  .tagline{margin-top:4px;font-size:11px;color:var(--muted)}
+  .side h2{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--accent);margin:18px 0 7px;padding-bottom:5px;border-bottom:2px solid var(--line)}
+  .contact{list-style:none;font-size:11.4px}
+  .contact li{display:flex;gap:8px;align-items:flex-start;margin-bottom:7px;color:var(--muted);word-break:break-word}
+  .contact b{color:var(--ink);font-weight:600}
+  .ico{flex:0 0 14px;color:var(--accent);font-weight:700;text-align:center}
+  .contact a{color:var(--ink);text-decoration:none}
+  .skillgroup{margin-bottom:12px}
+  .skillgroup .lbl{font-size:10.6px;font-weight:700;color:var(--ink);margin-bottom:6px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{background:var(--chip);color:var(--chip-ink);font-size:10.2px;font-weight:600;padding:3px 7px;border-radius:999px;white-space:nowrap}
+  .langs li,.edu li{list-style:none;font-size:11.4px;margin-bottom:9px}
+  .langs .l-name{font-weight:600}
+  .langs .l-lvl{color:var(--muted);font-size:10.6px}
+  .edu .e-deg{font-weight:600;display:block;font-size:11.4px}
+  .edu .e-org{color:var(--muted);font-size:10.4px}
+  .strength{list-style:none}
+  .strength li{position:relative;padding-left:15px;font-size:11.2px;margin-bottom:6px;color:#3a4456}
+  .strength li::before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800;font-size:10.5px}
+  .main{padding:24px 25px 26px}
+  .main h2{font-size:11.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--accent);margin:0 0 10px;display:flex;align-items:center;gap:9px}
+  .main h2::after{content:"";flex:1;height:2px;background:var(--line)}
+  .section{margin-bottom:18px}
+  .summary{font-size:12.2px;color:#374154;line-height:1.52}
+  .summary .hi{color:var(--ink);font-weight:600}
+  .freelead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+  .freelead .ft{font-size:13.5px;font-weight:800}
+  .freelead .fd{font-size:10.8px;color:var(--muted);font-weight:600;white-space:nowrap}
+  .freesub{font-size:11.1px;color:var(--muted);margin-bottom:13px}
+  .job{position:relative;padding-left:16px;margin-bottom:13px;border-left:2px solid var(--line)}
+  .job::before{content:"";position:absolute;left:-5px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px #fff}
+  .job-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .job-title{font-size:12.5px;font-weight:700}
+  .job-title .co{color:var(--accent)}
+  .job-date{font-size:10.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+  .job-meta{font-size:10.8px;color:var(--muted);margin:1px 0 5px;font-style:italic}
+  .job ul{list-style:none;margin:0}
+  .job li{position:relative;padding-left:13px;font-size:11.5px;margin-bottom:2.5px;color:#3a4456}
+  .job li::before{content:"▹";position:absolute;left:0;color:var(--accent);font-size:11px}
+  .stack{font-size:10.4px;color:var(--muted);margin-top:4px}
+  .stack b{color:#475067;font-weight:600}
+  .compact{margin-top:2px}
+  .compact .c-row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line)}
+  .compact .c-row:last-child{border-bottom:0}
+  .c-left b{font-weight:700}
+  .c-left .c-co{color:var(--accent)}
+  .c-tech{color:var(--muted);font-size:10.6px}
+  .c-date{font-size:10.4px;color:var(--muted);white-space:nowrap;font-weight:600}
+  /* Ordre de lecture machine. Chrome peint les elements positionnes apres le flux
+     normal et emet le texte du PDF dans cet ordre : sans cette regle, les blocs .job
+     (position:relative pour la puce de timeline) sont extraits APRES la fin du document,
+     et un ATS lit "Experience" comme un titre vide. Positionner tous les blocs les remet
+     dans la meme couche, donc dans l'ordre du DOM. Aucun effet visuel : pas d'offset.
+     Verifier avec : bun scripts/render-pdf.ts <fichier> puis extraction du texte. */
+  .name,.role,.tagline,.side h2,.contact li,.skillgroup,.langs li,.edu li,
+  .main h2,.section,.summary,.freelead,.freesub,.compact,.compact .c-row,
+  .job-head,.job-meta,.job ul,.stack{position:relative}
+  @media print{body{background:#fff;padding:0}.page{box-shadow:none;margin:0;width:auto;min-height:auto}@page{size:A4;margin:0}}
+</style>
+</head>
+<body>
+<div class="page">
+  <aside class="side">
+    <div class="name">Camille Martin</div>
+    <div class="role">Développeuse Frontend Senior · Vue.js &amp; React</div>
+    <div class="tagline">~8 ans · Full-stack orientée frontend · TypeScript</div>
+
+    <h2>Coordonnées</h2>
+    <ul class="contact">
+      <li><span class="ico">✉</span><a href="mailto:camille.martin@example.com">camille.martin@example.com</a></li>
+      <li><span class="ico">☎</span><a href="tel:+33600000000">06 00 00 00 00</a></li>
+      <li><span class="ico">in</span><a href="https://www.linkedin.com/in/exemple">linkedin.com/in/exemple</a></li>
+      <li><span class="ico">⌖</span><span><b>Nantes</b> · Pays de la Loire</span></li>
+      <li><span class="ico">⇄</span><span>Full remote ou hybride</span></li>
+    </ul>
+
+    <h2>Compétences</h2>
+    <div class="skillgroup"><div class="lbl">Frontend</div>
+      <div class="chips">
+        <span class="chip">Vue 3</span><span class="chip">React</span><span class="chip">TypeScript</span><span class="chip">Pinia</span><span class="chip">TanStack Query</span><span class="chip">Vitest</span><span class="chip">Playwright</span><span class="chip">SCSS</span></div>
+    </div>
+    <div class="skillgroup"><div class="lbl">Backend &amp; données</div>
+      <div class="chips">
+        <span class="chip">Node.js</span><span class="chip">NestJS</span><span class="chip">API REST</span><span class="chip">PostgreSQL</span><span class="chip">Redis</span></div>
+    </div>
+    <div class="skillgroup"><div class="lbl">DevOps &amp; archi</div>
+      <div class="chips">
+        <span class="chip">Docker</span><span class="chip">Git</span><span class="chip">GitHub Actions</span><span class="chip">Linux</span></div>
+    </div>
+    <div class="skillgroup"><div class="lbl">Méthodes</div>
+      <div class="chips">
+        <span class="chip">Scrum</span><span class="chip">Code review</span><span class="chip">TDD</span><span class="chip">Accessibilité RGAA</span><span class="chip">Design system</span><span class="chip">Storybook</span></div>
+    </div>
+
+    <h2>Atouts</h2>
+    <ul class="strength">
+      <li>Architecture frontend &amp; composants réutilisables</li>
+      <li>Reprise de bases de code existantes</li>
+      <li>Code structuré, maintenable, testé</li>
+      <li>Autonomie, initiative technique</li>
+    </ul>
+
+    <h2>Langues</h2>
+    <ul class="langs">
+      <li><span class="l-name">Français</span> · <span class="l-lvl">langue maternelle</span></li>
+      <li><span class="l-name">Anglais</span> · <span class="l-lvl">professionnel</span></li>
+      <li><span class="l-name">Espagnol</span> · <span class="l-lvl">notions</span></li>
+    </ul>
+
+    <h2>Formation</h2>
+    <ul class="edu">
+      <li><span class="e-deg">Master Informatique</span><span class="e-org">Université de Nantes · 2015-2017</span></li>
+      <li><span class="e-deg">Licence Informatique</span><span class="e-org">Université de Nantes · 2012-2015</span></li>
+    </ul>
+  </aside>
+
+  <main class="main">
+    <section class="section">
+      <h2>Profil</h2>
+      <p class="summary">
+        Développeuse web <span class="hi">senior</span> avec ~8 ans d'expérience, spécialisée <span class="hi">frontend Vue 3 &amp; React</span> / TypeScript.
+        Je conçois des <span class="hi">applications web métier</span> : SaaS B2B, back-offices, tableaux de bord et outils internes,
+        avec une exigence d'architecture frontend, de performance et de gestion d'état.
+        Capable d'intervenir sur toute la stack (API REST Node.js / NestJS, PostgreSQL, Docker, CI/CD),
+        j'attache une grande importance à un code structuré, maintenable et testé.
+        Je recherche un <span class="hi">CDI</span>, full remote ou hybride, sur un produit à forts enjeux métier.
+      </p>
+    </section>
+
+    <section class="section">
+      <h2>Expérience</h2>
+      <div class="freelead">
+        <span class="ft">Développeuse Frontend Senior, Indépendante</span>
+        <span class="fd">Mars 2020 - aujourd'hui</span>
+      </div>
+      <div class="freesub">Missions longues pour éditeurs SaaS, ESN et startups (Nantes &amp; remote).</div>
+
+      <div class="job">
+        <div class="job-head"><div class="job-title">Développeuse Vue 3 · <span class="co">Éditeur SaaS logistique</span></div><div class="job-date">Janv. 2023 - aujourd'hui</div></div>
+        <div class="job-meta">Refonte du back-office de pilotage des entrepôts, 40 000 utilisateurs.</div>
+        <ul>
+          <li>Migration progressive de Vue 2 vers Vue 3 et TypeScript, sans gel des livraisons</li>
+          <li>Mise en place d'une <b>bibliothèque de composants</b> partagée entre trois applications</li>
+          <li>Tests de bout en bout Playwright intégrés à la CI, exécutés à chaque merge</li>
+        </ul>
+        <div class="stack"><b>Stack :</b> Vue 3 · Pinia · TypeScript · Vitest · Playwright · NestJS · Docker</div>
+      </div>
+
+      <div class="job">
+        <div class="job-head"><div class="job-title">Développeuse React · <span class="co">ESN</span> (secteur bancaire)</div><div class="job-date">Mars 2021 - Déc. 2022</div></div>
+        <div class="job-meta">Application de souscription en ligne pour une banque de détail.</div>
+        <ul>
+          <li>Développement du parcours de souscription multi-étapes et de sa validation</li>
+          <li>Amélioration de l'accessibilité (audit RGAA, corrections des écarts bloquants)</li>
+        </ul>
+        <div class="stack"><b>Stack :</b> React · TypeScript · TanStack Query · Jest</div>
+      </div>
+
+      <div class="compact">
+        <div class="c-row"><div class="c-left"><b>Dév. <span class="c-co">Full Stack</span></b> · Startup edtech · <span class="c-tech">Vue 2 · Node.js · PostgreSQL</span></div><div class="c-date">2020-2021</div></div>
+      </div>
+
+      <div class="job" style="margin-top:13px">
+        <div class="job-head"><div class="job-title">Développeuse web · <span class="co">Agence digitale</span></div><div class="job-date">Sep. 2017 - Fév. 2020</div></div>
+        <div class="job-meta">Sites et applications pour des clients PME.</div>
+        <ul>
+          <li>Intégration et développement frontend, maintenance applicative</li>
+        </ul>
+        <div class="stack"><b>Stack :</b> JavaScript · Vue.js · PHP · MySQL</div>
+      </div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

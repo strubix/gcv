@@ -1,0 +1,5 @@
+node_modules/
+references/profil-source.md
+references/linkedin-raw.txt
+*.pdf
+_audit-densite.html
